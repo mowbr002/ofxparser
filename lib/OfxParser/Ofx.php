@@ -49,6 +49,11 @@ class Ofx
     public $bankAccounts = [];
 
     /**
+     * @var [type]
+     */
+    public $securities = [];
+
+    /**
      * Only populated if there is only one bank account
      * @var BankAccount|null
      * @deprecated This will be removed in future versions

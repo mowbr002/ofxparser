@@ -7,6 +7,7 @@ use OfxParser\Ofx;
 use OfxParser\Utils;
 use OfxParser\Entities\Statement;
 use OfxParser\Entities\Investment\Account as InvestmentAccount;
+use OfxParser\Entities\Investment\Security;
 use OfxParser\Entities\Investment\Transaction\Banking;
 use OfxParser\Entities\Investment\Transaction\BuyMutualFund;
 use OfxParser\Entities\Investment\Transaction\BuySecurity;
@@ -27,6 +28,11 @@ class Investment extends Ofx
 
         if (isset($xml->INVSTMTMSGSRSV1)) {
             $this->bankAccounts = $this->buildAccounts($xml);
+        }
+
+        if(isset($xml->SECLISTMSGSRSV1))
+        {
+            $this->securities = $this->buildSecurities($xml);
         }
 
         // Set a helper if only one bank account
@@ -50,6 +56,41 @@ class Investment extends Ofx
             }
         }
         return $accounts;
+    }
+
+    /**
+     * Bundles up the securities
+     *
+     * @param   SimpleXMLElement  $xml
+     * @return  array
+     */
+    protected function buildSecurities(SimpleXMLElement $xml): array
+    {
+        $securities = [];
+
+        foreach($xml->SECLISTMSGSRSV1->SECLIST as $infoList)
+        {
+            foreach($infoList as $infoListResponse)
+            $securities[] = $this->buildSecurity($infoListResponse);
+        }
+
+        return $securities;
+    }
+
+    /**
+     * Builds a security from the ofx data
+     *
+     * @param   SimpleXMLElement  $element
+     * @return  Security
+     */
+    protected function buildSecurity(SimpleXMLElement $element): Security
+    {
+        $security = new Security();
+        $security->name = (string) $element->SECINFO->SECNAME;
+        $security->uniqueId = (string) $element->SECINFO->SECID->UNIQUEID;
+        $security->ticker = (string) $element->SECINFO->TICKER;
+
+        return $security;
     }
 
     /**
